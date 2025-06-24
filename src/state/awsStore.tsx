@@ -59,8 +59,6 @@ createEffect(async () => {
 
     const replayData = await result.json();
 
-    console.log(replayData);
-
     setReplayState({
         replayData,
         frame: 0,
@@ -135,11 +133,11 @@ createEffect(() => {
                 renderDatas.push(
                     computeRenderData(replayState, playerUpdate, animations, false)
                 );
-                // if (playerUpdate?.nanaState != null) {
-                //     renderDatas.push(
-                //         computeRenderData(replayState, playerUpdate, animations, true)
-                //     );
-                // }
+                if (playerUpdate.nanaState != null) {
+                    renderDatas.push(
+                        computeRenderData(replayState, playerUpdate, animations, true)
+                    );
+                }
                 return renderDatas;
             })
     );
