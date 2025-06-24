@@ -15,17 +15,16 @@ export function getStartOfAction(
     getPlayerOnFrame(
       playerState.playerIndex,
       playerState.frameNumber,
-      replayData,
-      replayData.settings.frameCount,
+      replayData
     ) as PlayerUpdateWithNana
-  )["state"];
+  )[playerState.isNana ? "nanaState" : "state"];
+
   while (true) {
     const testEarlierState = getPlayerOnFrame(
       playerState.playerIndex,
       earliestStateOfAction.frameNumber - 1,
-      replayData,
-      replayData.settings.frameCount
-    )?.["state"];
+      replayData
+    )?.[playerState.isNana ? "nanaState" : "state"];
     if (
       testEarlierState === undefined ||
       testEarlierState.actionStateId !== earliestStateOfAction.actionStateId ||
@@ -42,7 +41,7 @@ export function getPlayerOnFrame(
   playerIndex: number,
   frameNumber: number,
   replayData: ReplayData,
-  offset?: number,
 ): PlayerUpdate {
-  return replayData.frames[offset ? (offset - frameNumber) : frameNumber]?.players[playerIndex];
+
+  return replayData.frames[frameNumber - replayData.frames[0].frameNumber]?.players[playerIndex];
 }
