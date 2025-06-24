@@ -318,28 +318,24 @@ createEffect(() => {
         renderDatas.push(
           computeRenderData(replayState, playerUpdate, animations, false)
         );
-        if (playerUpdate.nanaState != null) {
-          renderDatas.push(
-            computeRenderData(replayState, playerUpdate, animations, true)
-          );
-        }
+        // if (playerUpdate?.nanaState != null) {
+        //   renderDatas.push(
+        //     computeRenderData(replayState, playerUpdate, animations, true)
+        //   );
+        // }
         return renderDatas;
       })
   );
 });
 
-function computeRenderData(
+export function computeRenderData(
   replayState: ReplayStore,
   playerUpdate: PlayerUpdate,
   animations: CharacterAnimations,
   isNana: boolean
 ): RenderData {
-  const playerState = (playerUpdate as PlayerUpdateWithNana)[
-    isNana ? "nanaState" : "state"
-  ];
-  const playerInputs = (playerUpdate as PlayerUpdateWithNana)[
-    isNana ? "nanaInputs" : "inputs"
-  ];
+  const playerState = (playerUpdate as PlayerUpdateWithNana)["state"];
+  const playerInputs = (playerUpdate as PlayerUpdateWithNana)["inputs"];
   const playerSettings = replayState
     .replayData!.settings.playerSettings.filter(Boolean)
     .find((settings) => settings.playerIndex === playerUpdate.playerIndex)!;
@@ -348,9 +344,10 @@ function computeRenderData(
     getPlayerOnFrame(
       playerUpdate.playerIndex,
       getStartOfAction(playerState, replayState.replayData!),
-      replayState.replayData!
+      replayState.replayData!,
+      replayState.replayData?.settings.frameCount
     ) as PlayerUpdateWithNana
-  )[isNana ? "nanaState" : "state"];
+  )["state"];
   const actionName = actionNameById[playerState.actionStateId];
   const characterData = actionMapByInternalId[playerState.internalCharacterId];
   const animationName =
@@ -434,8 +431,9 @@ function getDamageFlyRollRotation(
     getPlayerOnFrame(
       playerState.playerIndex,
       playerState.frameNumber - 1,
-      replayState.replayData!
-    ) as PlayerUpdateWithNana
+      replayState.replayData!,
+      replayState.replayData?.settings.frameCount
+) as PlayerUpdateWithNana
   )[playerState.isNana ? "nanaState" : "state"];
   const deltaX = playerState.xPosition - previousState.xPosition;
   const deltaY = playerState.yPosition - previousState.yPosition;
@@ -455,8 +453,9 @@ function getSpacieUpBRotation(
   const startOfActionPlayer = getPlayerOnFrame(
     playerState.playerIndex,
     getStartOfAction(playerState, replayState.replayData!),
-    replayState.replayData!
-  );
+    replayState.replayData!,
+    replayState.replayData?.settings.frameCount
+);
   const joystickDegrees =
     ((startOfActionPlayer.inputs.processed.joystickY === 0 &&
     startOfActionPlayer.inputs.processed.joystickX === 0
@@ -517,7 +516,7 @@ export function getPlayerColor(
   ][playerIndex][isNana ? 1 : 0];
 }
 
-function wrapFrame(replayState: ReplayStore, frame: number): number {
+export function wrapFrame(replayState: ReplayStore, frame: number): number {
   if (!replayState.replayData) return frame;
   return (
     (frame + replayState.replayData.frames.length) %

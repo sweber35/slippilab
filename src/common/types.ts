@@ -9,6 +9,7 @@ export interface ReplayData {
   readonly ending: GameEnding;
 }
 export interface GameSettings {
+  readonly frameCount: number;
   /**
    * The version of the .slp spec that was used when the file was created. Some
    * fields are only present after certain versions.

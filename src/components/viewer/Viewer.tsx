@@ -4,8 +4,8 @@ import { HUD } from "~/components/viewer/HUD";
 import { Players } from "~/components/viewer/Player";
 import { Stage } from "~/components/viewer/Stage";
 import { Item } from "~/components/viewer/Item";
-import { replayStore } from "~/state/replayStore";
-import { Controls } from "~/components/viewer/Controls";
+import { replayStore } from "~/state/awsStore";
+// import { Controls } from "~/components/viewer/Controls";
 
 export function Viewer() {
   const items = createMemo(
@@ -25,7 +25,7 @@ export function Viewer() {
             <HUD />
           </g>
         </svg>
-        <Controls />
+        {/*<Controls />*/}
       </Show>
     </div>
   );

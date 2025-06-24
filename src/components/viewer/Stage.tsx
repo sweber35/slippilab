@@ -5,9 +5,10 @@ import {
 } from "~/common/constants";
 import { stageNameByExternalId } from "~/common/ids";
 import { isInVersion } from "~/parser/parser";
-import { replayStore } from "~/state/replayStore";
+import { replayStore } from "~/state/awsStore";
 
 export function Stage() {
+
   const stageName = createMemo(
     () => stageNameByExternalId[replayStore.replayData!.settings.stageId]
   );

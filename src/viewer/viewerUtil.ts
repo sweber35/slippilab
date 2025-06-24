@@ -4,24 +4,28 @@ import {
   PlayerUpdateWithNana,
   ReplayData,
 } from "~/common/types";
+import {replayStore} from "~/state/awsStore";
 
 export function getStartOfAction(
   playerState: PlayerState,
   replayData: ReplayData
 ): number {
+
   let earliestStateOfAction = (
     getPlayerOnFrame(
       playerState.playerIndex,
       playerState.frameNumber,
-      replayData
+      replayData,
+      replayData.settings.frameCount,
     ) as PlayerUpdateWithNana
-  )[playerState.isNana ? "nanaState" : "state"];
+  )["state"];
   while (true) {
     const testEarlierState = getPlayerOnFrame(
       playerState.playerIndex,
       earliestStateOfAction.frameNumber - 1,
-      replayData
-    )?.[playerState.isNana ? "nanaState" : "state"];
+      replayData,
+      replayData.settings.frameCount
+    )?.["state"];
     if (
       testEarlierState === undefined ||
       testEarlierState.actionStateId !== earliestStateOfAction.actionStateId ||
@@ -37,7 +41,8 @@ export function getStartOfAction(
 export function getPlayerOnFrame(
   playerIndex: number,
   frameNumber: number,
-  replayData: ReplayData
+  replayData: ReplayData,
+  offset?: number,
 ): PlayerUpdate {
-  return replayData.frames[frameNumber]?.players[playerIndex];
+  return replayData.frames[offset ? (offset - frameNumber) : frameNumber]?.players[playerIndex];
 }

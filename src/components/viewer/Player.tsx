@@ -1,7 +1,8 @@
 import { createMemo, For, Show } from "solid-js";
 import { characterNameByExternalId } from "~/common/ids";
-import { RenderData, replayStore } from "~/state/replayStore";
+import { replayStore } from "~/state/awsStore";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
+import { RenderData } from "~/state/replayStore";
 
 export function Players() {
   return (
@@ -44,7 +45,8 @@ function Shield(props: { renderData: RenderData }) {
             props.renderData.playerState,
             replayStore.replayData!
           ),
-          replayStore.replayData!
+          replayStore.replayData!,
+          replayStore.replayData?.settings.frameCount
         ).inputs.processed.anyTrigger
       : props.renderData.playerInputs.processed.anyTrigger === 0
       ? 1

@@ -1,6 +1,6 @@
 import { createMemo } from "solid-js";
 import { For } from "solid-js/web";
-import { replayStore } from "~/state/replayStore";
+import { replayStore } from "~/state/awsStore";
 import { PlayerHUD } from "~/components/viewer/PlayerHUD";
 import { Timer } from "~/components/viewer/Timer";
 
