@@ -27,14 +27,6 @@ return (
 }
 function Shield(props: { renderData: RenderData }) {
 
-    if (props.renderData.playerInputs.processed.anyTrigger > 0.1) {
-        console.log('anyTrigger', props.renderData.playerInputs.processed.anyTrigger);
-        console.log('shieldSize', props.renderData.playerState.shieldSize);
-        console.log('xPosition', props.renderData.playerState.xPosition);
-        console.log('shieldOffset', props.renderData.characterData.shieldOffset);
-        console.log('facingDirection', props.renderData.playerState.facingDirection);
-    }
-
     // [0,60]
     const shieldHealth = createMemo(
         () => Number(props.renderData.playerState.shieldSize)
