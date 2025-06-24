@@ -9,6 +9,7 @@ import { queries } from "~/search/queries";
 import { currentSelectionStore } from "~/state/awsSelectionStore";
 import { fetchAnimations } from "~/viewer/animationCache";
 import { computeRenderData, ReplayStore, wrapFrame } from "~/state/replayStore";
+import { ReplayData } from "~/common/types";
 
 export const defaultReplayStoreState: ReplayStore = {
     highlights: Object.fromEntries(
@@ -57,7 +58,7 @@ createEffect(async () => {
         body: JSON.stringify(selected),
     })
 
-    const replayData = await result.json();
+    const replayData: ReplayData = await result.json();
 
     setReplayState({
         replayData,

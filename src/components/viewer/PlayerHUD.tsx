@@ -1,6 +1,7 @@
 import { createMemo, For, Show } from "solid-js";
 import { characterNameByInternalId } from "~/common/ids";
-import { RenderData, replayStore } from "~/state/awsStore";
+import { replayStore } from "~/state/awsStore";
+import { RenderData } from "~/state/replayStore";
 
 export function PlayerHUD(props: { player: number }) {
   const renderData = createMemo(() =>

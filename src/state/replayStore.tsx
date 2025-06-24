@@ -352,7 +352,7 @@ export function computeRenderData(
   const characterData = actionMapByInternalId[playerState.internalCharacterId];
   const animationName =
       characterData.animationMap.get(actionName) ||
-      characterData.specialsMap.get(Number(playerState.actionStateId)) ||
+      characterData.specialsMap.get(playerState.actionStateId) ||
       actionName;
 
   const animationFrames = animations[animationName];

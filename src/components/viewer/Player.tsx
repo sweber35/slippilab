@@ -29,7 +29,7 @@ function Shield(props: { renderData: RenderData }) {
 
     // [0,60]
     const shieldHealth = createMemo(
-        () => Number(props.renderData.playerState.shieldSize)
+        () => props.renderData.playerState.shieldSize
     );
     // [0,1]. If 0 is received, set to 1 because user may have released shield
     // during a Guard-related animation. As an example, a shield must stay active
@@ -68,15 +68,15 @@ function Shield(props: { renderData: RenderData }) {
                 <circle
                     // TODO: shield tilts
                     cx={
-                        Number(props.renderData.playerState.xPosition) +
-                        Number(props.renderData.characterData.shieldOffset[0]) *
-                        Number(props.renderData.playerState.facingDirection)
+                        props.renderData.playerState.xPosition +
+                        props.renderData.characterData.shieldOffset[0] *
+                        props.renderData.playerState.facingDirection
                     }
                     cy={
-                        Number(props.renderData.playerState.yPosition) +
-                        Number(props.renderData.characterData.shieldOffset[1])
+                        props.renderData.playerState.yPosition +
+                        props.renderData.characterData.shieldOffset[1]
                     }
-                    r={Number(props.renderData.characterData.shieldSize) * shieldSizeMultiplier()}
+                    r={props.renderData.characterData.shieldSize * shieldSizeMultiplier()}
                     fill={props.renderData.innerColor}
                     opacity={0.6}
                 />
@@ -102,11 +102,11 @@ return (
         }
     >
         <Hexagon
-        x={Number(props.renderData.playerState.xPosition)}
+        x={props.renderData.playerState.xPosition}
         // TODO get true shine position, shieldY * 3/4 is a guess.
         y={
-        Number(props.renderData.playerState.yPosition) +
-        (Number(props.renderData.characterData.shieldOffset[1]) * 3) / 4
+        props.renderData.playerState.yPosition +
+        (props.renderData.characterData.shieldOffset[1] * 3) / 4
         }
         r={6}
         />

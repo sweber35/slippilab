@@ -12,7 +12,7 @@ export function HUD() {
   );
   return (
     <>
-      <Timer />
+      {/*<Timer />*/}
       <For each={playerIndexes()}>
         {(playerIndex) => <PlayerHUD player={playerIndex} />}
       </For>

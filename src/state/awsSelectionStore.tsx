@@ -18,8 +18,8 @@ function createSelectionStore() {
     const [selectionState, setSelectionState] = createStore<SelectionState>({
         stubs: [{
             matchId: "2025-06-02T03:30:29Z",
-            frameStart: 9000,
-            frameEnd: 9060
+            frameStart: 8000,
+            frameEnd: 8600
         }],
     });
 
