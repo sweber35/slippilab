@@ -318,11 +318,11 @@ createEffect(() => {
         renderDatas.push(
           computeRenderData(replayState, playerUpdate, animations, false)
         );
-        // if (playerUpdate?.nanaState != null) {
-        //   renderDatas.push(
-        //     computeRenderData(replayState, playerUpdate, animations, true)
-        //   );
-        // }
+        if (playerUpdate.nanaState != null) {
+          renderDatas.push(
+              computeRenderData(replayState, playerUpdate, animations, true)
+          );
+        }
         return renderDatas;
       })
   );
@@ -334,8 +334,8 @@ export function computeRenderData(
   animations: CharacterAnimations,
   isNana: boolean
 ): RenderData {
-  const playerState = (playerUpdate as PlayerUpdateWithNana)["state"];
-  const playerInputs = (playerUpdate as PlayerUpdateWithNana)["inputs"];
+  const playerState = (playerUpdate as PlayerUpdateWithNana)[isNana ? "nanaState" : "state"];
+  const playerInputs = (playerUpdate as PlayerUpdateWithNana)[isNana ? "nanaInputs" : "inputs"];
   const playerSettings = replayState
     .replayData!.settings.playerSettings.filter(Boolean)
     .find((settings) => settings.playerIndex === playerUpdate.playerIndex)!;
@@ -344,16 +344,17 @@ export function computeRenderData(
     getPlayerOnFrame(
       playerUpdate.playerIndex,
       getStartOfAction(playerState, replayState.replayData!),
-      replayState.replayData!,
-      replayState.replayData?.settings.frameCount
+      replayState.replayData!
     ) as PlayerUpdateWithNana
-  )["state"];
+  )[isNana ? "nanaState" : "state"];
+
   const actionName = actionNameById[playerState.actionStateId];
   const characterData = actionMapByInternalId[playerState.internalCharacterId];
   const animationName =
-    characterData.animationMap.get(actionName) ??
-    characterData.specialsMap.get(playerState.actionStateId) ??
-    actionName;
+      characterData.animationMap.get(actionName) ||
+      characterData.specialsMap.get(Number(playerState.actionStateId)) ||
+      actionName;
+
   const animationFrames = animations[animationName];
   // TODO: validate L cancels, other fractional frames, and one-indexed
   // animations. I am currently just flooring. Converts - 1 to 0 and loops for
@@ -431,9 +432,8 @@ function getDamageFlyRollRotation(
     getPlayerOnFrame(
       playerState.playerIndex,
       playerState.frameNumber - 1,
-      replayState.replayData!,
-      replayState.replayData?.settings.frameCount
-) as PlayerUpdateWithNana
+      replayState.replayData!
+    ) as PlayerUpdateWithNana
   )[playerState.isNana ? "nanaState" : "state"];
   const deltaX = playerState.xPosition - previousState.xPosition;
   const deltaY = playerState.yPosition - previousState.yPosition;
@@ -453,9 +453,8 @@ function getSpacieUpBRotation(
   const startOfActionPlayer = getPlayerOnFrame(
     playerState.playerIndex,
     getStartOfAction(playerState, replayState.replayData!),
-    replayState.replayData!,
-    replayState.replayData?.settings.frameCount
-);
+    replayState.replayData!
+  );
   const joystickDegrees =
     ((startOfActionPlayer.inputs.processed.joystickY === 0 &&
     startOfActionPlayer.inputs.processed.joystickX === 0
