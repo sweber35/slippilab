@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import {createComputed, createEffect, createSignal, on} from "solid-js";
+import { createEffect, createSignal, on } from "solid-js";
 import { ReplayData } from "~/common/types";
 
 export type Category = 'Ledge Dashes' | 'Shine Grabs';
@@ -10,13 +10,17 @@ async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category }),
     });
-    return res.json();
+
+    const payload = await res.json();
+
+    console.log('loadStubsForCategory():', payload);
+    return payload;
 }
 
 export interface SelectionState {
     filter?: Category;
     stubs: ReplayStub[];
-    selectedFileAndStub?: [string, ReplayStub];
+    selectedFileAndStub?: [ReplayData, ReplayStub];
 }
 
 export interface ReplayStub {
@@ -25,7 +29,7 @@ export interface ReplayStub {
     frameStart: number;
     frameEnd: number;
     stageId: number;
-    playerSettings: {
+    playerSettings?: {
         playerIndex: number;
         connectCode: string;
         displayName: string;
@@ -37,7 +41,7 @@ export interface ReplayStub {
 
 interface StubStore {
     stubs: () => ReplayStub[];
-    getReplayData: (stub: ReplayStub) => Promise<string>;
+    getReplayData: (stub: ReplayStub) => Promise<ReplayData>;
 }
 
 export type SelectionStore = ReturnType<typeof createSelectionStore>;
@@ -54,6 +58,7 @@ function createSelectionStore(stubStore: StubStore) {
 
     async function select(stub: ReplayStub) {
         const data = await stubStore.getReplayData(stub);
+        console.log('select:', data);
         setSelectionState("selectedFileAndStub", [data, stub]);
     }
 
@@ -67,12 +72,12 @@ function createSelectionStore(stubStore: StubStore) {
     );
 
     // Update filter results if stubs or filters change
-    createEffect(() => {
-        setSelectionState(
-            "stubs",
-            stubStore.stubs().filter( stub => stub.category === selectionState.filter)
-        );
-    });
+    // createEffect(() => {
+    //     setSelectionState(
+    //         "stubs",
+    //         stubStore.stubs().filter( stub => stub.category === selectionState.filter)
+    //     );
+    // });
 
     return { data: selectionState, setFilter, select };
 }
@@ -86,20 +91,21 @@ async function initCategoryStore(category: Category) {
 
     categoryStores[category] = createSelectionStore({
         stubs: stubSignal,
-        async getReplayData(stub) {
-            const result = await fetch('https://xpzvwi2rsi.execute-api.us-east-2.amazonaws.com/dev/replay-stub-lambda', {
+        async getReplayData(stub): Promise<ReplayData> {
+            const result = await fetch('https://48il4rqxli.execute-api.us-east-2.amazonaws.com/dev/replay-data-lambda', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    category: 'Ledge Dash',
-                }),
+                body: JSON.stringify(stub),
             });
 
             if (!result.ok) {
                 throw new Error(`Lambda fetch failed: ${result.statusText}`);
             }
 
-            return await result.json();
+            const replayData = await result.json();
+            console.log('getReplayData():', replayData);
+
+            return await replayData as ReplayData;
         },
     });
 }
@@ -113,6 +119,6 @@ createEffect(async () => {
     if (!categoryStores[category]) {
         await initCategoryStore(category);
     }
-
+    console.log('setCurrentSelectionStore():', category, categoryStores[category]);
     setCurrentSelectionStore(categoryStores[category]);
 });

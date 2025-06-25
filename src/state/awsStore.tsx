@@ -101,23 +101,21 @@ const [running, start, stop] = createRAF(
 createEffect(() => setReplayState("running", running()));
 
 createEffect(async () => {
-    // @ts-ignore
+    console.log('sel data:', currentSelectionStore()?.data);
+    //@ts-ignore
     const selected = currentSelectionStore()?.data.stubs[0];
-    if (selected === undefined) {
-        setReplayState(defaultReplayStoreState);
-        return;
-    }
 
-    const result = await fetch('https://48il4rqxli.execute-api.us-east-2.amazonaws.com/dev/replay-data-lambda', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selected),
-    })
-
-    const replayData: ReplayData = await result.json();
+    // @ts-ignore
+    await currentSelectionStore()?.select( selected || {
+         "matchId": "2025-06-02T03:30:29Z",
+         "frameStart": 1,
+         "frameEnd": 2000,
+         "stageId": 2
+     });
 
     setReplayState({
-        replayData,
+        // @ts-ignore
+        replayData:  currentSelectionStore()?.data.selectedFileAndStub[0],
         frame: 0,
         renderDatas: [],
     });
@@ -179,6 +177,7 @@ createEffect(() => {
     if (replayState.replayData === undefined) {
         return;
     }
+
     setReplayState(
         "renderDatas",
         replayState.replayData.frames[replayState.frame].players

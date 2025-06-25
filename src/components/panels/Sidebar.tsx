@@ -5,12 +5,15 @@ import { currentSelectionStore } from "~/state/awsSelectionStore";
 const store = currentSelectionStore();
 
 export function Sidebar() {
-  return (
-    <>
-      <div class="flex flex-col gap-8 px-4 sm:flex-row sm:gap-2 lg:hidden">
-        <Replays selectionStore={store} />
-        <Clips />
-      </div>
-    </>
-  );
+    if (!store) {
+        return <div>Loading store...</div>;
+    }
+    return (
+        <>
+          <div class="flex flex-col gap-8 px-4 sm:flex-row sm:gap-2 lg:hidden">
+            <Replays selectionStore={store} />
+            <Clips />
+          </div>
+        </>
+    );
 }

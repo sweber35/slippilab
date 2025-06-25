@@ -50,8 +50,7 @@ export function Replays(props: { selectionStore: SelectionStore }) {
             selected={(stub) =>
               props.selectionStore.data?.selectedFileAndStub?.[1] === stub
             }
-            estimateSize={(stub) =>
-              stub.playerSettings.filter(Boolean).length === 4 ? 56 : 32
+            estimateSize={(stub) => 32
             }
           />
         </Show>
