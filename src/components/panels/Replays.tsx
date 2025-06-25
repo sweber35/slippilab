@@ -33,22 +33,22 @@ export function Replays(props: { selectionStore: SelectionStore }) {
             placeholder="Filter"
             multiple
             {...filterProps}
-            initialValue={props.selectionStore.data.filter}
+            initialValue={props.selectionStore?.data.filter}
             onChange={props.selectionStore.setFilter}
           />
         </div>
         <Show
-          when={props.selectionStore.data.stubs.length > 0}
+          when={props.selectionStore?.data.stubs.length > 0}
           fallback={<div>No matching results</div>}
         >
           <Picker
-            items={props.selectionStore.data.stubs}
+            items={props.selectionStore?.data.stubs}
             render={(stub) => <GameInfo replayStub={stub} />}
             onClick={(fileAndSettings) =>
               props.selectionStore.select(fileAndSettings)
             }
             selected={(stub) =>
-              props.selectionStore.data.selectedFileAndStub?.[1] === stub
+              props.selectionStore.data?.selectedFileAndStub?.[1] === stub
             }
             estimateSize={(stub) =>
               stub.playerSettings.filter(Boolean).length === 4 ? 56 : 32

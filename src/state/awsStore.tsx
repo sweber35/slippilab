@@ -102,7 +102,7 @@ createEffect(() => setReplayState("running", running()));
 
 createEffect(async () => {
     // @ts-ignore
-    const selected = currentSelectionStore().data.stubs[0];
+    const selected = currentSelectionStore()?.data.stubs[0];
     if (selected === undefined) {
         setReplayState(defaultReplayStoreState);
         return;
