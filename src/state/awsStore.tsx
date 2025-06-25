@@ -106,13 +106,11 @@ createEffect(
         (selectedData) => {
             if (!selectedData) return;
 
-            setReplayState((prev) => ({
-                ...prev,
-                replayData: selectedData,
-                renderDatas: [],
-                // keep current frame if possible, clamp if it's too high
-                frame: Math.min(prev.frame, selectedData.frames.length - 1),
-            }));
+            setReplayState("replayData", selectedData);
+            setReplayState("renderDatas", []);
+            setReplayState("frame", (prevFrame) =>
+                Math.min(prevFrame, selectedData.frames.length - 1)
+            );
 
             start();
         }
@@ -126,8 +124,6 @@ createEffect(() => {
 
     store.select(firstStub);
 });
-
-
 
 const animationResources = [];
 for (let playerIndex = 0; playerIndex < 4; playerIndex++) {
