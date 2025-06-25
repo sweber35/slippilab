@@ -1,5 +1,5 @@
 import createRAF, { targetFPS } from "@solid-primitives/raf";
-import { createEffect, createResource } from "solid-js";
+import {batch, createEffect, createResource} from "solid-js";
 import { createStore } from "solid-js/store";
 import {
     characterNameByExternalId,
@@ -33,6 +33,61 @@ const [replayState, setReplayState] = createStore<ReplayStore>(
 );
 
 export const replayStore = replayState;
+
+export function speedNormal(): void {
+    batch(() => {
+        setReplayState("fps", 60);
+        setReplayState("framesPerTick", 1);
+    });
+}
+
+export function speedFast(): void {
+    setReplayState("framesPerTick", 2);
+}
+
+export function speedSlow(): void {
+    setReplayState("fps", 30);
+}
+
+export function zoomIn(): void {
+    setReplayState("zoom", (z) => z * 1.01);
+}
+
+export function zoomOut(): void {
+    setReplayState("zoom", (z) => z / 1.01);
+}
+
+export function toggleDebug(): void {
+    setReplayState("isDebug", (isDebug) => !isDebug);
+}
+
+export function toggleFullscreen(): void {
+    setReplayState("isFullscreen", (isFullscreen) => !isFullscreen);
+}
+
+export function togglePause(): void {
+    running() ? stop() : start();
+}
+
+export function pause(): void {
+    stop();
+}
+
+export function jump(target: number): void {
+    setReplayState("frame", wrapFrame(replayState, target));
+}
+
+// percent is [0,1]
+export function jumpPercent(percent: number): void {
+    setReplayState(
+        "frame",
+        Math.round((replayState.replayData?.frames.length ?? 0) * percent)
+    );
+}
+
+export function adjust(delta: number): void {
+    setReplayState("frame", (f) => wrapFrame(replayState, f + delta));
+}
 
 const [running, start, stop] = createRAF(
     targetFPS(

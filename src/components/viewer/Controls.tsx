@@ -5,9 +5,9 @@ import {
   adjust,
   jump,
   jumpPercent,
-  nextHighlight,
+  // nextHighlight,
   pause,
-  previousHighlight,
+  // previousHighlight,
   speedFast,
   speedNormal,
   speedSlow,
@@ -16,7 +16,8 @@ import {
   togglePause,
   zoomIn,
   zoomOut,
-} from "~/state/replayStore";
+} from "~/state/awsStore";
+
 import { currentSelectionStore } from "~/state/selectionStore";
 
 export function Controls() {
@@ -90,14 +91,14 @@ export function Controls() {
       case "{":
         void currentSelectionStore().previousFile();
         break;
-      case "'":
-      case '"':
-        nextHighlight();
-        break;
-      case ";":
-      case ":":
-        previousHighlight();
-        break;
+      // case "'":
+      // case '"':
+      //   nextHighlight();
+      //   break;
+      // case ";":
+      // case ":":
+      //   previousHighlight();
+      //   break;
       case "d":
       case "D":
         toggleDebug();

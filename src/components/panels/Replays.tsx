@@ -3,7 +3,7 @@ import { createMemo, For, Show } from "solid-js";
 import { characterNameByExternalId, stageNameByExternalId } from "~/common/ids";
 import { Picker } from "~/components/common/Picker";
 import { StageBadge } from "~/components/common/Badge";
-import { ReplayStub, SelectionStore } from "~/state/selectionStore";
+import { ReplayStub, SelectionStore } from "~/state/awsSelectionStore";
 
 const filterProps = createOptions(
   [
@@ -33,16 +33,16 @@ export function Replays(props: { selectionStore: SelectionStore }) {
             placeholder="Filter"
             multiple
             {...filterProps}
-            initialValue={props.selectionStore.data.filters}
-            onChange={props.selectionStore.setFilters}
+            initialValue={props.selectionStore.data.filter}
+            onChange={props.selectionStore.setFilter}
           />
         </div>
         <Show
-          when={props.selectionStore.data.filteredStubs.length > 0}
+          when={props.selectionStore.data.stubs.length > 0}
           fallback={<div>No matching results</div>}
         >
           <Picker
-            items={props.selectionStore.data.filteredStubs}
+            items={props.selectionStore.data.stubs}
             render={(stub) => <GameInfo replayStub={stub} />}
             onClick={(fileAndSettings) =>
               props.selectionStore.select(fileAndSettings)
