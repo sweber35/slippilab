@@ -2,16 +2,25 @@ import { createStore } from "solid-js/store";
 import {createComputed, createEffect, createSignal, on} from "solid-js";
 import { ReplayData } from "~/common/types";
 
-export type Filter = 'Ledge Dashes' | 'Shine Grabs';
+export type Category = 'Ledge Dashes' | 'Shine Grabs';
+
+async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
+    const res = await fetch("https://xpzvwi2rsi.execute-api.us-east-2.amazonaws.com/dev/replay-stub-lambda", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category }),
+    });
+    return res.json();
+}
 
 export interface SelectionState {
-    filter?: Filter;
+    filter?: Category;
     stubs: ReplayStub[];
     selectedFileAndStub?: [string, ReplayStub];
 }
 
 export interface ReplayStub {
-    category?: Filter;
+    category?: Category;
     matchId: string;
     frameStart: number;
     frameEnd: number;
@@ -36,33 +45,10 @@ export type SelectionStore = ReturnType<typeof createSelectionStore>;
 function createSelectionStore(stubStore: StubStore) {
 
     const [selectionState, setSelectionState] = createStore<SelectionState>({
-        stubs: [{
-            matchId: "2025-06-02T03:30:29Z",
-            frameStart: 8000,
-            frameEnd: 8600,
-            stageId: 2,
-            playerSettings: [
-                {
-                    playerIndex: 0,
-                    connectCode: "SHAG#127",
-                    displayName: "Shagnarok",
-                    nametag: "Shagnarok",
-                    externalCharacterId: 22,
-                    teamId: 1
-                },
-                {
-                    playerIndex: 1,
-                    connectCode: "SMBL#8",
-                    displayName: "Blood Raven",
-                    nametag: "Blood Raven",
-                    externalCharacterId: 17,
-                    teamId: 2
-                }
-            ]
-        }],
+        stubs: [],
     });
 
-    function setFilter(filter: Filter) {
+    function setFilter(filter: Category) {
         setSelectionState("filter", filter);
     }
 
@@ -91,41 +77,42 @@ function createSelectionStore(stubStore: StubStore) {
     return { data: selectionState, setFilter, select };
 }
 
-const [awsStubs, setAwsStubs] = createSignal<ReplayStub[]>([]);
-export const awsLibrary = createSelectionStore({
-    stubs: awsStubs,
+const categoryStores: Record<string, SelectionStore> = {};
 
-    getReplayData: async ({
-        matchId,
-        frameStart,
-        frameEnd
-    }: {
-        matchId: string,
-        frameStart: number,
-        frameEnd: number
-    }) => {
-        const result = await fetch('https://48il4rqxli.execute-api.us-east-2.amazonaws.com/dev/replay-data-lambda', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                matchId,
-                frameStart,
-                frameEnd
-            }),
-        });
+async function initCategoryStore(category: Category) {
+    const stubs = await loadStubsForCategory(category);
 
-        if (!result.ok) {
-            throw new Error(`Lambda fetch failed: ${result.statusText}`);
-        }
+    const [stubSignal, setStubSignal] = createSignal<ReplayStub[]>(stubs);
 
-        return await result.json();
+    categoryStores[category] = createSelectionStore({
+        stubs: stubSignal,
+        async getReplayData(stub) {
+            const result = await fetch('https://xpzvwi2rsi.execute-api.us-east-2.amazonaws.com/dev/replay-stub-lambda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    category: 'Ledge Dash',
+                }),
+            });
+
+            if (!result.ok) {
+                throw new Error(`Lambda fetch failed: ${result.statusText}`);
+            }
+
+            return await result.json();
+        },
+    });
+}
+
+export const [currentCategory, setCurrentCategory] = createSignal<Category>("Ledge Dashes");
+export const [currentSelectionStore, setCurrentSelectionStore] = createSignal<SelectionStore>();
+
+createEffect(async () => {
+    const category = currentCategory();
+
+    if (!categoryStores[category]) {
+        await initCategoryStore(category);
     }
-});
 
-export const [currentSelectionStore, setCurrentSelectionStore] = createSignal<SelectionStore>(awsLibrary);
-createComputed(
-    on(
-        () => awsLibrary.data.selectedFileAndStub,
-        () => setCurrentSelectionStore(awsLibrary)
-    )
-);
+    setCurrentSelectionStore(categoryStores[category]);
+});

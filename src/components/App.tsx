@@ -62,8 +62,7 @@ export function App() {
           class="flex h-full flex-col-reverse gap-4 lg:h-screen lg:flex-row"
           ref={dropzoneRef}
         >
-          <Sidebar />
-          <div class="flex max-h-screen flex-grow flex-col gap-2 pt-2 pr-4 pl-4 lg:pl-0">
+         <div class="flex max-h-screen flex-grow flex-col gap-2 pt-2 pr-4 pl-4 lg:pl-0">
             <Viewer />
           </div>
         </div>

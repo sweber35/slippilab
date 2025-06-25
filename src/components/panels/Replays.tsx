@@ -61,38 +61,10 @@ export function Replays(props: { selectionStore: SelectionStore }) {
 }
 
 function GameInfo(props: { replayStub: ReplayStub }) {
-  function playerString(player: ReplayStub["playerSettings"][0]): string {
-    const name = [player.displayName, player.connectCode, player.nametag].find(
-      (s) => s?.length > 0
-    );
-    const character = characterNameByExternalId[player.externalCharacterId];
-    return name !== undefined ? `${name}(${character})` : character;
-  }
-
-  const teams = createMemo(() => {
-    const teams: ReplayStub["playerSettings"][0][][] = [[], [], []];
-    props.replayStub.playerSettings
-      .filter(Boolean)
-      .forEach((player) => teams[player.teamId ?? 0].push(player));
-    return teams.filter((team) => team.length > 0);
-  });
-
   return (
     <>
       <div class="flex w-full items-center">
         <StageBadge stageId={props.replayStub.stageId} />
-        <div class="flex flex-grow flex-col items-center">
-          {props.replayStub.playerSettings.filter(Boolean).length === 4 ? (
-            <For each={teams()}>
-              {(team) => <div>{team.map(playerString).join(" + ")}</div>}
-            </For>
-          ) : (
-            props.replayStub.playerSettings
-              .filter((s) => s)
-              .map(playerString)
-              .join(" vs ")
-          )}
-        </div>
       </div>
     </>
   );
