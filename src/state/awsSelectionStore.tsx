@@ -13,7 +13,6 @@ async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
 
     const payload = await res.json();
 
-    console.log('loadStubsForCategory():', payload);
     return payload;
 }
 
@@ -62,11 +61,16 @@ function createSelectionStore(stubStore: StubStore) {
         setSelectionState("selectedFileAndStub", [data, stub]);
     }
 
+    createEffect(() => {
+        setSelectionState("stubs", stubStore.stubs());
+        console.log("Updated selectionState.stubs:", stubStore.stubs());
+    });
+
     createEffect(
         on(
             () => stubStore.stubs(),
             () => {
-                setSelectionState({ selectedFileAndStub: undefined });
+                setSelectionState("selectedFileAndStub", undefined);
             }
         )
     );
@@ -88,6 +92,7 @@ async function initCategoryStore(category: Category) {
     const stubs = await loadStubsForCategory(category);
 
     const [stubSignal, setStubSignal] = createSignal<ReplayStub[]>(stubs);
+    console.log("Loaded stubs:", stubs);
 
     categoryStores[category] = createSelectionStore({
         stubs: stubSignal,

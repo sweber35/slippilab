@@ -1,5 +1,5 @@
 import createRAF, { targetFPS } from "@solid-primitives/raf";
-import {batch, createEffect, createResource} from "solid-js";
+import {batch, createEffect, createResource, on} from "solid-js";
 import { createStore } from "solid-js/store";
 import {
     characterNameByExternalId,
@@ -100,28 +100,34 @@ const [running, start, stop] = createRAF(
 );
 createEffect(() => setReplayState("running", running()));
 
-createEffect(async () => {
-    console.log('sel data:', currentSelectionStore()?.data);
-    //@ts-ignore
-    const selected = currentSelectionStore()?.data.stubs[0];
+createEffect(
+    on(
+        () => currentSelectionStore()?.data.selectedFileAndStub?.[0],
+        (selectedData) => {
+            if (!selectedData) return;
 
-    // @ts-ignore
-    await currentSelectionStore()?.select( selected || {
-         "matchId": "2025-06-02T03:30:29Z",
-         "frameStart": 1,
-         "frameEnd": 2000,
-         "stageId": 2
-     });
+            setReplayState((prev) => ({
+                ...prev,
+                replayData: selectedData,
+                renderDatas: [],
+                // keep current frame if possible, clamp if it's too high
+                frame: Math.min(prev.frame, selectedData.frames.length - 1),
+            }));
 
-    setReplayState({
-        // @ts-ignore
-        replayData:  currentSelectionStore()?.data.selectedFileAndStub[0],
-        frame: 0,
-        renderDatas: [],
-    });
+            start();
+        }
+    )
+);
 
-    start();
+createEffect(() => {
+    const store = currentSelectionStore();
+    const firstStub = store?.data.stubs?.[1];
+    if (!store || !firstStub) return;
+
+    store.select(firstStub);
 });
+
+
 
 const animationResources = [];
 for (let playerIndex = 0; playerIndex < 4; playerIndex++) {
