@@ -4,7 +4,6 @@ import {
   PlayerUpdateWithNana,
   ReplayData,
 } from "~/common/types";
-import {replayStore} from "~/state/awsStore";
 
 export function getStartOfAction(
   playerState: PlayerState,
@@ -42,6 +41,6 @@ export function getPlayerOnFrame(
   frameNumber: number,
   replayData: ReplayData,
 ): PlayerUpdate {
-
+console.log('playerOnFrame:', frameNumber - replayData.frames[0].frameNumber);
   return replayData.frames[frameNumber - replayData.frames[0].frameNumber]?.players[playerIndex];
 }
