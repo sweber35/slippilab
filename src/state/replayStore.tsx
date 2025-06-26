@@ -357,6 +357,7 @@ export function computeRenderData(
     : playerState;
 
   const actionName = actionNameById[playerState.actionStateId];
+  if (playerState.playerIndex == 1) console.log('action:', actionName, playerState.actionStateId);
   const characterData = actionMapByInternalId[playerState.internalCharacterId];
   const animationName =
       characterData.animationMap.get(actionName) ||
