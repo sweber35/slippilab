@@ -2,7 +2,7 @@ import { createMemo, For, Show } from "solid-js";
 import { characterNameByExternalId } from "~/common/ids";
 import { replayStore } from "~/state/awsStore";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
-import { RenderData } from "~/state/replayStore";
+import { RenderData } from "~/state/awsStore";
 
 export function Players() {
     return (

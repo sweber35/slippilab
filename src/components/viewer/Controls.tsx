@@ -18,7 +18,7 @@ import {
   zoomOut,
 } from "~/state/awsStore";
 
-import { currentSelectionStore } from "~/state/selectionStore";
+import { currentSelectionStore } from "~/state/awsSelectionStore";
 
 export function Controls() {
   onMount(() => {

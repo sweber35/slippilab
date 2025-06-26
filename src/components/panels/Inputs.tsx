@@ -5,7 +5,7 @@ import {
   characterNameByInternalId,
 } from "~/common/ids";
 import { PlayerInputs } from "~/common/types";
-import { getPlayerColor, replayStore } from "~/state/replayStore";
+import { getPlayerColor, replayStore } from "~/state/awsStore";
 
 export function Inputs() {
   const indexes = [0, 1, 2, 3];

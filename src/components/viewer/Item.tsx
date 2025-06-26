@@ -2,7 +2,6 @@ import { createMemo, For, Match, Switch } from "solid-js";
 import { itemNamesById } from "~/common/ids";
 import { ItemUpdate, PlayerUpdate } from "~/common/types";
 import { replayStore } from "~/state/awsStore";
-import { ReplayStore } from "~/state/replayStore";
 
 // TODO: characters projectiles
 
