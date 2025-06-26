@@ -117,7 +117,7 @@ createEffect(
 
 createEffect(() => {
     const store = currentSelectionStore();
-    const firstStub = store?.data.stubs?.[1];
+    const firstStub = store?.data.stubs?.[0];
     if (!store || !firstStub) return;
 
     store.select(firstStub);

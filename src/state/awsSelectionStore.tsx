@@ -35,6 +35,7 @@ export interface ReplayStub {
     frameStart: number;
     frameEnd: number;
     stageId: number;
+    players: string; // Format: "[{playerTag, characterId}, {playerTag, characterId}]"
     playerSettings?: {
         playerIndex: number;
         connectCode: string;
@@ -124,6 +125,9 @@ function createSelectionStore(stubStore: StubStore) {
 
 const categoryStores: Record<string, SelectionStore> = {};
 
+// Cache for replay data to prevent unnecessary refetching
+const replayDataCache = new Map<string, ReplayData>();
+
 async function initCategoryStore(category: Category) {
     console.log('Loading stubs for category:', category);
     const stubs = await loadStubsForCategory(category);
@@ -135,6 +139,16 @@ async function initCategoryStore(category: Category) {
     categoryStores[category] = createSelectionStore({
         stubs: stubSignal,
         async getReplayData(stub): Promise<ReplayData> {
+            // Create a cache key based on the stub's unique properties
+            const cacheKey = `${stub.matchId}-${stub.frameStart}-${stub.frameEnd}`;
+            
+            // Check if we already have this replay data cached
+            if (replayDataCache.has(cacheKey)) {
+                console.log('Using cached replay data for:', cacheKey);
+                return replayDataCache.get(cacheKey)!;
+            }
+
+            console.log('Fetching replay data for:', cacheKey);
             const result = await fetch('https://48il4rqxli.execute-api.us-east-2.amazonaws.com/dev/replay-data-lambda', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -163,6 +177,9 @@ async function initCategoryStore(category: Category) {
             }
             console.log('Loaded replay data:', replayData);
 
+            // Cache the replay data
+            replayDataCache.set(cacheKey, replayData);
+
             return replayData;
         },
     });
@@ -182,6 +199,10 @@ export const [currentSelectionStore, setCurrentSelectionStore] = createSignal<Se
 createEffect(async () => {
     const category = currentCategory();
     console.log('Category changed to:', category);
+
+    // Clear cache when switching categories to ensure fresh data
+    replayDataCache.clear();
+    console.log('Cleared replay data cache for new category');
 
     if (!categoryStores[category]) {
         console.log('Initializing category store for:', category);

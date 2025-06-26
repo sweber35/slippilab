@@ -3,6 +3,7 @@ import { createMemo, For, Show } from "solid-js";
 import { Picker } from "~/components/common/Picker";
 import { StageBadge } from "~/components/common/Badge";
 import { ReplayStub, SelectionStore, currentCategory, setCurrentCategory } from "~/state/awsSelectionStore";
+import { characterNameByExternalId } from "~/common/ids";
 
 const categoryOptions = [
     { value: "Ledge Dashes", label: "Ledge Dashes" },
@@ -63,12 +64,7 @@ export function Replays(props: { selectionStore: SelectionStore }) {
                       {...categoryFilterProps}
                       initialValue={currentOption}
                       onChange={(selected) => {
-                        console.log('DEBUG 1', selected, selected?.length);
-                        console.log('DEBUG selected type:', typeof selected);
-                        console.log('DEBUG selected value:', selected);
-                        
                         if (selected && typeof selected === 'object' && 'value' in selected) {
-                          console.log('DEBUG 2', selected);
                           console.log('Changing category to:', selected.value);
                           setCurrentCategory(selected.value);
                         } else {
@@ -111,8 +107,7 @@ export function Replays(props: { selectionStore: SelectionStore }) {
                 selected={(stub) =>
                   props.selectionStore.data?.selectedFileAndStub?.[1] === stub
                 }
-                estimateSize={(stub) => 32
-                }
+                estimateSize={(stub) => 120}
               />
             </Show>
           </div>
@@ -121,11 +116,54 @@ export function Replays(props: { selectionStore: SelectionStore }) {
 }
 
 function GameInfo(props: { replayStub: ReplayStub }) {
+  // Parse the players string to extract player tags and character IDs
+  const parsePlayers = () => {
+    try {
+      // Remove the outer brackets and split by player entries
+      const playersStr = props.replayStub.players.slice(1, -1); // Remove [ and ]
+      const playerEntries = playersStr.split('}, {');
+      
+      return playerEntries.map(entry => {
+        // Clean up the entry and extract tag and character ID
+        const cleanEntry = entry.replace('{', '').replace('}', '');
+        const [tag, characterId] = cleanEntry.split(', ').map(s => s.trim());
+        return { tag, characterId: parseInt(characterId) };
+      });
+    } catch (error) {
+      console.error('Error parsing players:', error);
+      return [];
+    }
+  };
+
+  const players = parsePlayers();
+
   return (
-    <>
-      <div class="flex w-full items-center">
-        <StageBadge stageId={props.replayStub.stageId} />
+    <div class="h-24 p-3 border-b border-gray-200 hover:bg-gray-50 mb-1">
+      {/* Header with stage and date */}
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <StageBadge stageId={props.replayStub.stageId} />
+          <div class="text-sm text-gray-600">
+            {new Date(props.replayStub.matchId).toLocaleDateString()}
+          </div>
+        </div>
+        <div class="text-xs text-gray-500">
+          Frames {props.replayStub.frameStart}-{props.replayStub.frameEnd}
+        </div>
       </div>
-    </>
+      
+      {/* Player information */}
+      <div class="space-y-1">
+        <div class="text-xs font-medium text-gray-700">Players:</div>
+        {players.map((player, index) => (
+          <div class="text-xs text-gray-600 pl-2">
+            <span class="font-medium">{player.tag}</span>
+            <span class="text-gray-500 ml-2">
+              ({characterNameByExternalId[player.characterId] || `Character ${player.characterId}`})
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
