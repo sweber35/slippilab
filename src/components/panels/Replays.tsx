@@ -2,17 +2,29 @@ import { createOptions, Select } from "@thisbeyond/solid-select";
 import { createMemo, For, Show } from "solid-js";
 import { Picker } from "~/components/common/Picker";
 import { StageBadge } from "~/components/common/Badge";
-import { ReplayStub, SelectionStore } from "~/state/awsSelectionStore";
+import { ReplayStub, SelectionStore, currentCategory, setCurrentCategory } from "~/state/awsSelectionStore";
 
-const techSkillOptions = [
-    { type: "techSkill", label: "Ledge Dash" },
-    { type: "techSkill", label: "Shine Grab" },
-    { type: "techSkill", label: "Shine OOS" },
+const categoryOptions = [
+    { value: "Ledge Dashes", label: "Ledge Dashes" },
+    { value: "Shine Grabs", label: "Shine Grabs" },
 ];
 
-const filterProps = createOptions(
+const stageOptions = [
+    { type: "stage", label: "Battlefield" },
+    { type: "stage", label: "Dream Land N64" },
+    { type: "stage", label: "Final Destination" },
+    { type: "stage", label: "Fountain of Dreams" },
+    { type: "stage", label: "Pokémon Stadium" },
+    { type: "stage", label: "Yoshi's Story" },
+];
+
+const categoryFilterProps = createOptions(categoryOptions, {
+    key: "label",
+});
+
+const stageFilterProps = createOptions(
     [
-        ...techSkillOptions,
+        ...stageOptions,
     ],
     {
         key: "label",
@@ -24,33 +36,74 @@ const filterProps = createOptions(
 );
 
 export function Replays(props: { selectionStore: SelectionStore }) {
+    console.log('Replays component render - selectionStore:', props.selectionStore);
+    console.log('Current stubs count:', props.selectionStore?.data.stubs.length);
+    console.log('Current filtered stubs count:', props.selectionStore?.data.filteredStubs.length);
+    console.log('Current category signal value:', currentCategory());
+    
+    // Create a computed value for the current selected category option
+    const currentCategoryOption = createMemo(() => {
+        const current = currentCategory();
+        return categoryOptions.find(opt => opt.value === current) || categoryOptions[0];
+    });
+    
     return (
         <>
           <div class="flex max-h-96 w-full flex-col items-center gap-2 overflow-y-auto sm:h-full md:max-h-screen">
+            {/* Category Selection */}
+            <div class="w-full">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tech Skill Category</label>
+              <Show when={currentCategory()} keyed>
+                {(category) => {
+                  const currentOption = categoryOptions.find(opt => opt.value === category) || categoryOptions[0];
+                  return (
+                    <Select
+                      class="w-full rounded border border-slate-600 bg-white"
+                      placeholder="Select tech skill category"
+                      {...categoryFilterProps}
+                      initialValue={currentOption}
+                      onChange={(selected) => {
+                        console.log('DEBUG 1', selected, selected?.length);
+                        console.log('DEBUG selected type:', typeof selected);
+                        console.log('DEBUG selected value:', selected);
+                        
+                        if (selected && typeof selected === 'object' && 'value' in selected) {
+                          console.log('DEBUG 2', selected);
+                          console.log('Changing category to:', selected.value);
+                          setCurrentCategory(selected.value);
+                        } else {
+                          console.log('DEBUG: No valid selection');
+                        }
+                      }}
+                    />
+                  );
+                }}
+              </Show>
+            </div>
+
+            {/* Stage/Player Filtering */}
             <div
               class="w-full"
               // don't trigger global shortcuts when typing in the filter box
               onkeydown={(e: Event) => e.stopPropagation()}
               onkeyup={(e: Event) => e.stopPropagation()}
             >
+              <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Stage or Player</label>
               <Select
                 class="w-full rounded border border-slate-600 bg-white"
-                placeholder="Filter"
+                placeholder="Filter by stage or player name"
                 multiple
-                {...filterProps}
-                initialValue={[{
-                    type: 'Tech Skill',
-                    label: 'Ledge Dash'
-                }]}
-                onChange={props.selectionStore.setFilter}
+                {...stageFilterProps}
+                onChange={props.selectionStore.setFilters}
               />
             </div>
+
             <Show
-              when={() => props.selectionStore?.data.stubs.length > 0}
+              when={() => props.selectionStore?.data.filteredStubs.length > 0}
               fallback={<div>No matching results</div>}
             >
               <Picker
-                items={props.selectionStore?.data.stubs}
+                items={props.selectionStore?.data.filteredStubs}
                 render={(stub) => <GameInfo replayStub={stub} />}
                 onClick={(fileAndSettings) =>
                   props.selectionStore.select(fileAndSettings)

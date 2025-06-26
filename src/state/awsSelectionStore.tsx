@@ -1,8 +1,13 @@
 import { createStore } from "solid-js/store";
 import { createEffect, createSignal, on } from "solid-js";
 import { ReplayData, Frame } from "~/common/types";
+import { stageNameByExternalId, ExternalStageName } from "~/common/ids";
 
 export type Category = 'Ledge Dashes' | 'Shine Grabs';
+
+export type Filter = 
+  | { type: "stage"; label: ExternalStageName }
+  | { type: "codeOrName"; label: string };
 
 async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
     const res = await fetch("https://xpzvwi2rsi.execute-api.us-east-2.amazonaws.com/dev/replay-stub-lambda", {
@@ -18,7 +23,9 @@ async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
 
 export interface SelectionState {
     filter?: Category;
+    filters: Filter[];
     stubs: ReplayStub[];
+    filteredStubs: ReplayStub[];
     selectedFileAndStub?: [ReplayData, ReplayStub];
 }
 
@@ -49,21 +56,58 @@ function createSelectionStore(stubStore: StubStore) {
 
     const [selectionState, setSelectionState] = createStore<SelectionState>({
         stubs: [],
+        filters: [],
+        filteredStubs: [],
     });
 
     function setFilter(filter: Category) {
         setSelectionState("filter", filter);
     }
 
+    function setFilters(filters: Filter[]) {
+        setSelectionState("filters", filters);
+    }
+
     async function select(stub: ReplayStub) {
         const data = await stubStore.getReplayData(stub);
-        console.log('select:', data);
         setSelectionState("selectedFileAndStub", [data, stub]);
     }
 
     createEffect(() => {
         setSelectionState("stubs", stubStore.stubs());
         console.log("Updated selectionState.stubs:", stubStore.stubs());
+    });
+
+    createEffect(() => {
+        // Apply filters to stubs
+        const filtered = selectionState.stubs.filter((stub) => {
+            const stagesAllowed = selectionState.filters
+                .filter((filter) => filter.type === "stage")
+                .map((filter) => filter.label);
+            
+            const namesNeeded = selectionState.filters
+                .filter((filter) => filter.type === "codeOrName")
+                .map((filter) => filter.label);
+
+            // Check stage filter
+            const stagePass = stagesAllowed.length === 0 || 
+                stagesAllowed.includes(stageNameByExternalId[stub.stageId]);
+
+            // Check name filter
+            const areNamesSatisfied = namesNeeded.length === 0 || namesNeeded.every((name) =>
+                stub.playerSettings?.some((p) =>
+                    [
+                        p.connectCode?.toLowerCase(),
+                        p.displayName?.toLowerCase(),
+                        p.nametag?.toLowerCase(),
+                    ].includes(name.toLowerCase())
+                )
+            );
+
+            return stagePass && areNamesSatisfied;
+        });
+
+        setSelectionState("filteredStubs", filtered);
     });
 
     createEffect(
@@ -75,21 +119,15 @@ function createSelectionStore(stubStore: StubStore) {
         )
     );
 
-    // Update filter results if stubs or filters change
-    // createEffect(() => {
-    //     setSelectionState(
-    //         "stubs",
-    //         stubStore.stubs().filter( stub => stub.category === selectionState.filter)
-    //     );
-    // });
-
-    return { data: selectionState, setFilter, select };
+    return { data: selectionState, setFilter, setFilters, select };
 }
 
 const categoryStores: Record<string, SelectionStore> = {};
 
 async function initCategoryStore(category: Category) {
+    console.log('Loading stubs for category:', category);
     const stubs = await loadStubsForCategory(category);
+    console.log('Loaded stubs:', stubs.length, 'for category:', category);
 
     const [stubSignal, setStubSignal] = createSignal<ReplayStub[]>(stubs);
     console.log("Loaded stubs:", stubs);
@@ -123,22 +161,38 @@ async function initCategoryStore(category: Category) {
                     console.warn(`Frame gap between ${prev} and ${curr}`);
                 }
             }
-            console.log('Loaded replay:', replayData);
+            console.log('Loaded replay data:', replayData);
 
             return replayData;
         },
     });
+    console.log('Category store created for:', category);
 }
 
 export const [currentCategory, setCurrentCategory] = createSignal<Category>("Ledge Dashes");
-export const [currentSelectionStore, setCurrentSelectionStore] = createSignal<SelectionStore>();
+export const [currentSelectionStore, setCurrentSelectionStore] = createSignal<SelectionStore | undefined>(undefined);
+
+// Initialize the first category store immediately
+(async () => {
+    console.log('Initializing first category store');
+    await initCategoryStore("Ledge Dashes");
+    setCurrentSelectionStore(categoryStores["Ledge Dashes"]);
+})();
 
 createEffect(async () => {
     const category = currentCategory();
+    console.log('Category changed to:', category);
 
     if (!categoryStores[category]) {
+        console.log('Initializing category store for:', category);
         await initCategoryStore(category);
     }
     console.log('setCurrentSelectionStore():', category, categoryStores[category]);
     setCurrentSelectionStore(categoryStores[category]);
+    
+    // Clear filters when changing categories
+    if (categoryStores[category]) {
+        console.log('Clearing filters for category:', category);
+        categoryStores[category].setFilters([]);
+    }
 });
