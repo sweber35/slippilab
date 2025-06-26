@@ -1,7 +1,7 @@
 import { createOptions, Select } from "@thisbeyond/solid-select";
 import { createMemo, For, Show } from "solid-js";
 import { Picker } from "~/components/common/Picker";
-import { StageBadge } from "~/components/common/Badge";
+import { StageBadge, PlayerBadge } from "~/components/common/Badge";
 import { ReplayStub, SelectionStore, currentCategory, setCurrentCategory } from "~/state/awsSelectionStore";
 import { characterNameByExternalId } from "~/common/ids";
 
@@ -30,7 +30,7 @@ const stageFilterProps = createOptions(
     {
         key: "label",
         createable: (input: any) => ({
-            type: "codeOrName", // or dynamically infer type from input
+            type: "codeOrName", 
             label: input,
         }),
     }
@@ -107,7 +107,7 @@ export function Replays(props: { selectionStore: SelectionStore }) {
                 selected={(stub) =>
                   props.selectionStore.data?.selectedFileAndStub?.[1] === stub
                 }
-                estimateSize={(stub) => 120}
+                estimateSize={(stub) => 140}
               />
             </Show>
           </div>
@@ -123,11 +123,15 @@ function GameInfo(props: { replayStub: ReplayStub }) {
       const playersStr = props.replayStub.players.slice(1, -1); // Remove [ and ]
       const playerEntries = playersStr.split('}, {');
       
-      return playerEntries.map(entry => {
+      return playerEntries.map((entry, index) => {
         // Clean up the entry and extract tag and character ID
         const cleanEntry = entry.replace('{', '').replace('}', '');
         const [tag, characterId] = cleanEntry.split(', ').map(s => s.trim());
-        return { tag, characterId: parseInt(characterId) };
+        return { 
+          tag, 
+          characterId: parseInt(characterId),
+          playerIndex: index + 1 // Player indices are 1-based for badges
+        };
       });
     } catch (error) {
       console.error('Error parsing players:', error);
@@ -136,9 +140,9 @@ function GameInfo(props: { replayStub: ReplayStub }) {
   };
 
   const players = parsePlayers();
-
+  
   return (
-    <div class="h-24 p-3 border-b border-gray-200 hover:bg-gray-50 mb-1">
+    <div class="h-28 p-3 pb-4 border-b border-gray-200 hover:bg-gray-50 mb-1">
       {/* Header with stage and date */}
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
@@ -155,10 +159,11 @@ function GameInfo(props: { replayStub: ReplayStub }) {
       {/* Player information */}
       <div class="space-y-1">
         <div class="text-xs font-medium text-gray-700">Players:</div>
-        {players.map((player, index) => (
-          <div class="text-xs text-gray-600 pl-2">
+        {players.map((player) => (
+          <div class="flex items-center gap-2 text-xs text-gray-600 pl-2">
+            <PlayerBadge port={player.playerIndex} />
             <span class="font-medium">{player.tag}</span>
-            <span class="text-gray-500 ml-2">
+            <span class="text-gray-500">
               ({characterNameByExternalId[player.characterId] || `Character ${player.characterId}`})
             </span>
           </div>
