@@ -1,6 +1,6 @@
 import { createStore } from "solid-js/store";
 import { createEffect, createSignal, on } from "solid-js";
-import { ReplayData } from "~/common/types";
+import { ReplayData, Frame } from "~/common/types";
 
 export type Category = 'Ledge Dashes' | 'Shine Grabs';
 
@@ -107,10 +107,25 @@ async function initCategoryStore(category: Category) {
                 throw new Error(`Lambda fetch failed: ${result.statusText}`);
             }
 
-            const replayData = await result.json();
-            console.log('getReplayData():', replayData);
+            const data = await result.json();
 
-            return await replayData as ReplayData;
+            const replayData: ReplayData = {
+                ...data,
+                frameIndexByNumber: Object.fromEntries(
+                    data.frames.map((frame: Frame, index: number) => [frame.frameNumber, index])
+                )
+            };
+
+            for (let i = 1; i < replayData.frames.length; i++) {
+                const prev = replayData.frames[i - 1].frameNumber;
+                const curr = replayData.frames[i].frameNumber;
+                if (curr !== prev + 1) {
+                    console.warn(`Frame gap between ${prev} and ${curr}`);
+                }
+            }
+            console.log('Loaded replay:', replayData);
+
+            return replayData;
         },
     });
 }

@@ -55,6 +55,8 @@ function createSelectionStore(stubStore: StubStore) {
 
   async function select(stub: ReplayStub) {
     const file = await stubStore.getFile(stub);
+    // Clear urlStartFrame when selecting a new replay to ensure it starts from the beginning
+    fileStore.urlStartFrame = undefined;
     setSelectionState("selectedFileAndStub", [file, stub]);
   }
 
@@ -64,6 +66,8 @@ function createSelectionStore(stubStore: StubStore) {
     }
     if (selectionState.selectedFileAndStub === undefined) {
       const file = await stubStore.getFile(selectionState.filteredStubs[0]);
+      // Clear urlStartFrame when switching replays
+      fileStore.urlStartFrame = undefined;
       setSelectionState("selectedFileAndStub", [
         file,
         selectionState.filteredStubs[0],
@@ -79,6 +83,8 @@ function createSelectionStore(stubStore: StubStore) {
       const file = await stubStore.getFile(
         selectionState.filteredStubs[nextIndex]
       );
+      // Clear urlStartFrame when switching replays
+      fileStore.urlStartFrame = undefined;
       setSelectionState("selectedFileAndStub", [
         file,
         selectionState.filteredStubs[nextIndex],
@@ -92,6 +98,8 @@ function createSelectionStore(stubStore: StubStore) {
     }
     if (selectionState.selectedFileAndStub === undefined) {
       const file = await stubStore.getFile(selectionState.filteredStubs[0]);
+      // Clear urlStartFrame when switching replays
+      fileStore.urlStartFrame = undefined;
       setSelectionState("selectedFileAndStub", [
         file,
         selectionState.filteredStubs[0],
@@ -107,6 +115,8 @@ function createSelectionStore(stubStore: StubStore) {
       const file = await stubStore.getFile(
         selectionState.filteredStubs[nextIndex]
       );
+      // Clear urlStartFrame when switching replays
+      fileStore.urlStartFrame = undefined;
       setSelectionState("selectedFileAndStub", [
         file,
         selectionState.filteredStubs[nextIndex],

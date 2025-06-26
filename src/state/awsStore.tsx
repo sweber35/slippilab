@@ -108,9 +108,7 @@ createEffect(
 
             setReplayState("replayData", selectedData);
             setReplayState("renderDatas", []);
-            setReplayState("frame", (prevFrame) =>
-                Math.min(prevFrame, selectedData.frames.length - 1)
-            );
+            setReplayState("frame", 0);
 
             start();
         }

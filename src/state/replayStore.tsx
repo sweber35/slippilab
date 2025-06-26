@@ -242,10 +242,14 @@ createEffect(async () => {
   highlights.customAttack = search(replayData, [
     { predicate: landsAttack(replayState.customAttack) },
   ]);
+  
+  // Reset frame to 0 when switching replays, unless there's a specific URL start frame
+  const startFrame = fileStore.urlStartFrame !== undefined ? fileStore.urlStartFrame : 0;
+  
   setReplayState({
     replayData,
     highlights,
-    frame: fileStore.urlStartFrame ?? 0,
+    frame: startFrame,
     renderDatas: [],
   });
   if (fileStore.urlStartFrame === undefined || fileStore.urlStartFrame === 0) {
@@ -340,13 +344,17 @@ export function computeRenderData(
     .replayData!.settings.playerSettings.filter(Boolean)
     .find((settings) => settings.playerIndex === playerUpdate.playerIndex)!;
 
-  const startOfActionPlayerState: PlayerState = (
-    getPlayerOnFrame(
-      playerUpdate.playerIndex,
-      getStartOfAction(playerState, replayState.replayData!),
-      replayState.replayData!
-    ) as PlayerUpdateWithNana
-  )[isNana ? "nanaState" : "state"];
+  const startOfActionFrame = getStartOfAction(playerState, replayState.replayData!);
+  const startOfActionPlayerUpdate = getPlayerOnFrame(
+    playerUpdate.playerIndex,
+    startOfActionFrame,
+    replayState.replayData!
+  );
+
+  // If we can't find the start of the action, use the current player state as fallback
+  const startOfActionPlayerState: PlayerState = startOfActionPlayerUpdate
+    ? (startOfActionPlayerUpdate as PlayerUpdateWithNana)[isNana ? "nanaState" : "state"]
+    : playerState;
 
   const actionName = actionNameById[playerState.actionStateId];
   const characterData = actionMapByInternalId[playerState.internalCharacterId];
@@ -428,15 +436,24 @@ function getDamageFlyRollRotation(
   replayState: ReplayStore,
   playerState: PlayerState
 ): number {
-  const previousState = (
-    getPlayerOnFrame(
-      playerState.playerIndex,
-      playerState.frameNumber - 1,
-      replayState.replayData!
-    ) as PlayerUpdateWithNana
-  )[playerState.isNana ? "nanaState" : "state"];
+  const previousPlayerUpdate = getPlayerOnFrame(
+    playerState.playerIndex,
+    playerState.frameNumber - 1,
+    replayState.replayData!
+  );
+
+  // If previous frame doesn't exist, return 0 rotation (no rotation)
+  if (!previousPlayerUpdate) {
+    return 0;
+  }
+
+  const previousState = (previousPlayerUpdate as PlayerUpdateWithNana)[
+    playerState.isNana ? "nanaState" : "state"
+  ];
+  
   const deltaX = playerState.xPosition - previousState.xPosition;
   const deltaY = playerState.yPosition - previousState.yPosition;
+
   return (Math.atan2(deltaY, deltaX) * 180) / Math.PI - 90;
 }
 
@@ -455,6 +472,12 @@ function getSpacieUpBRotation(
     getStartOfAction(playerState, replayState.replayData!),
     replayState.replayData!
   );
+  
+  // If start of action player doesn't exist, return 0 rotation (no rotation)
+  if (!startOfActionPlayer) {
+    return 0;
+  }
+  
   const joystickDegrees =
     ((startOfActionPlayer.inputs.processed.joystickY === 0 &&
     startOfActionPlayer.inputs.processed.joystickX === 0
