@@ -9,11 +9,10 @@ import { Sidebar } from "~/components/panels/Sidebar";
 import { TopBar } from "~/components/panels/TopBar";
 import { Viewer } from "~/components/viewer/Viewer";
 import { load } from "~/state/fileStore";
-import { replayStore } from "~/state/replayStore";
+import { replayStore } from "~/state/awsStore";
 import { fetchAnimations } from "~/viewer/animationCache";
 import "~/state/fileStore";
-import "~/state/replayStore";
-import "~/state/selectionStore";
+import "~/state/awsStore";
 import { setSidebar } from "~/state/navigationStore";
 
 export function App() {
@@ -62,15 +61,13 @@ export function App() {
           class="flex h-full flex-col-reverse gap-4 lg:h-screen lg:flex-row"
           ref={dropzoneRef}
         >
-          <Navigation />
+          {/*<Navigation />*/}
           <Sidebar />
-          <div class="flex max-h-screen flex-grow flex-col gap-2 pt-2 pr-4 pl-4 lg:pl-0">
-            <TopBar />
+        <div class="flex max-h-screen flex-grow flex-col gap-2 pt-2 pr-4 pl-4 lg:pl-0">
             <Viewer />
-          </div>
+        </div>
         </div>
       </Show>
-      <ToastGroup />
     </>
   );
 }

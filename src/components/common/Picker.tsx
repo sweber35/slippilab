@@ -29,24 +29,36 @@ export function Picker<T>(props: {
         >
           <For each={virtualizer.getVirtualItems()}>
             {/* item is VirtualItem */}
-            {(item: { start: number; index: number }) => (
-              <div
-                role="button"
-                class="absolute top-0 left-0 w-full overflow-hidden whitespace-nowrap border p-1 hover:bg-slate-100"
-                style={{ transform: `translateY(${item.start}px)` }}
-                classList={{
-                  "bg-slate-200 hover:bg-slate-300": props.selected(
-                    props.items[item.index],
-                    item.index
-                  ),
-                }}
-                onClick={() =>
-                  props.onClick(props.items[item.index], item.index)
-                }
-              >
-                {props.render(props.items[item.index], item.index)}
-              </div>
-            )}
+            {(item: { start: number; index: number }) => {
+              const stub = props.items[item.index];
+              // Use a unique key for each replay stub if possible (for debugging, not as a prop)
+              let debugKey = String(item.index);
+              if (
+                stub &&
+                typeof stub === "object" &&
+                "matchId" in stub &&
+                "frameStart" in stub &&
+                "frameEnd" in stub
+              ) {
+                debugKey = `${(stub as any).matchId}-${(stub as any).frameStart}-${(stub as any).frameEnd}`;
+              }
+              return (
+                <div
+                  role="button"
+                  class="absolute top-0 left-0 w-full overflow-hidden whitespace-nowrap border p-1 hover:bg-slate-100"
+                  style={{ transform: `translateY(${item.start}px)` }}
+                  classList={{
+                    "bg-slate-200 hover:bg-slate-300": props.selected(
+                      stub,
+                      item.index
+                    ),
+                  }}
+                  onClick={() => props.onClick(stub, item.index)}
+                >
+                  {props.render(stub, item.index)}
+                </div>
+              );
+            }}
           </For>
         </div>
       </div>

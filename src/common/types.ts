@@ -7,8 +7,10 @@ export interface ReplayData {
   readonly frames: Frame[];
   /** Cause of game end. To determine winner you must examine the last frame. */
   readonly ending: GameEnding;
+  frameIndexByNumber?: Record<number, number>;
 }
 export interface GameSettings {
+  readonly frameCount: number;
   /**
    * The version of the .slp spec that was used when the file was created. Some
    * fields are only present after certain versions.

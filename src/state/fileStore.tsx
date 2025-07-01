@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store";
 import { ProgressCircle } from "~/components/common/ProgressCircle";
 import { createToast, dismissToast } from "~/components/common/toaster";
 import { send } from "~/workerClient";
-import { ReplayStub } from "~/state/selectionStore";
+import { ReplayStub } from "~/state/awsSelectionStore";
 
 export interface FileStore {
   files: File[];

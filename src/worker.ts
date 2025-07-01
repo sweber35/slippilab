@@ -1,5 +1,5 @@
 import { stageNameByExternalId } from "./common/ids";
-import { ReplayStub } from "./state/selectionStore";
+import { ReplayStub } from "./state/awsSelectionStore";
 import { parseGameSettings } from "./parser/parser";
 import { GameSettings } from "~/common/types";
 import { decode } from "@shelacek/ubjson";

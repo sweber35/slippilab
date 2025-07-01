@@ -1,7 +1,7 @@
 import { createMemo, For, Match, Switch } from "solid-js";
 import { itemNamesById } from "~/common/ids";
 import { ItemUpdate, PlayerUpdate } from "~/common/types";
-import { replayStore, ReplayStore } from "~/state/replayStore";
+import { replayStore } from "~/state/awsStore";
 
 // TODO: characters projectiles
 
@@ -256,8 +256,8 @@ function FalcoLaser(props: { item: ItemUpdate }) {
       <For each={hitboxOffsets}>
         {(hitboxOffset) => (
           <circle
-            cx={props.item.xPosition + hitboxOffset * rotations()[0]}
-            cy={props.item.yPosition + hitboxOffset * rotations()[1]}
+            cx={ props.item.xPosition + hitboxOffset * rotations()[0]}
+            cy={ props.item.yPosition + hitboxOffset * rotations()[1]}
             r={hitboxSize}
             fill="red"
           />
