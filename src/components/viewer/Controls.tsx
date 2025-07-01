@@ -41,24 +41,24 @@ export function Controls() {
       case "ArrowRight":
       case "l":
       case "L":
-        event.preventDefault(); // Prevent default browser scrolling
+        event.preventDefault();
         adjust(120);
         break;
       case "ArrowLeft":
       case "j":
       case "J":
-        event.preventDefault(); // Prevent default browser scrolling
+        event.preventDefault();
         adjust(-120);
         break;
       case ".":
       case ">":
-        event.preventDefault(); // Prevent default browser scrolling
+        event.preventDefault();
         pause();
         adjust(1);
         break;
       case ",":
       case "<":
-        event.preventDefault(); // Prevent default browser scrolling
+        event.preventDefault();
         pause();
         adjust(-1);
         break;
@@ -75,11 +75,11 @@ export function Controls() {
         jumpPercent(Number(event.key) * 0.1); // convert 3 => 30%
         break;
       case "ArrowUp":
-        event.preventDefault(); // Prevent default browser scrolling
+        event.preventDefault();
         speedSlow();
         break;
       case "ArrowDown":
-        event.preventDefault(); // Prevent default browser scrolling
+        event.preventDefault();
         speedFast();
         break;
       case "-":
