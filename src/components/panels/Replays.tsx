@@ -1,9 +1,10 @@
 import { createOptions, Select } from "@thisbeyond/solid-select";
-import { createMemo, For, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import { Picker } from "~/components/common/Picker";
 import { StageBadge, PlayerBadge } from "~/components/common/Badge";
 import { ReplayStub, SelectionStore, currentCategory, setCurrentCategory } from "~/state/awsSelectionStore";
 import { characterNameByExternalId } from "~/common/ids";
+import { LAMBDA_URLS } from "~/config";
 
 const categoryOptions = [
     { value: "Ledge Dashes", label: "Ledge Dashes" },
@@ -46,6 +47,14 @@ export function Replays(props: { selectionStore: SelectionStore }) {
     const currentCategoryOption = createMemo(() => {
         const current = currentCategory();
         return categoryOptions.find(opt => opt.value === current) || categoryOptions[0];
+    });
+    
+    // Sort stubs so bugged stubs are at the bottom
+    const sortedFilteredStubs = createMemo(() => {
+        return [...props.selectionStore?.data.filteredStubs].sort((a, b) => {
+            // undefined bugged treated as false (not bugged)
+            return (a.bugged ? 1 : 0) - (b.bugged ? 1 : 0);
+        });
     });
     
     return (
@@ -95,11 +104,11 @@ export function Replays(props: { selectionStore: SelectionStore }) {
             </div>
 
             <Show
-              when={() => props.selectionStore?.data.filteredStubs.length > 0}
+              when={() => sortedFilteredStubs().length > 0}
               fallback={<div>No matching results</div>}
             >
               <Picker
-                items={props.selectionStore?.data.filteredStubs}
+                items={sortedFilteredStubs()}
                 render={(stub) => <GameInfo replayStub={stub} />}
                 onClick={(fileAndSettings) =>
                   props.selectionStore.select(fileAndSettings)
@@ -116,6 +125,9 @@ export function Replays(props: { selectionStore: SelectionStore }) {
 }
 
 function GameInfo(props: { replayStub: ReplayStub }) {
+  const [bugged, setBugged] = createSignal(props.replayStub.bugged ?? false);
+  const [loading, setLoading] = createSignal(false);
+
   // Parse the players string to extract player tags and character IDs
   const parsePlayers = () => {
     try {
@@ -141,8 +153,50 @@ function GameInfo(props: { replayStub: ReplayStub }) {
 
   const players = parsePlayers();
   
+  // Handler for toggling bugged state
+  async function toggleBugged() {
+    const newBugged = !bugged();
+    console.log('toggleBugged called, current bugged:', bugged(), 'new bugged:', newBugged);
+    setLoading(true);
+    setBugged(newBugged); // Optimistic update
+    
+    const requestBody = {
+      matchId: props.replayStub.matchId,
+      frameStart: props.replayStub.frameStart,
+      frameEnd: props.replayStub.frameEnd,
+      bugged: newBugged,
+    };
+    console.log('Sending request to Lambda:', requestBody);
+    
+    try {
+      const response = await fetch(LAMBDA_URLS.REPLAY_TAGS_LAMBDA, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log('Lambda response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Lambda response body:', result);
+      // Use the returned bugged value from the Lambda response
+      setBugged(result.bugged);
+      // Update the stub's bugged value
+      props.replayStub.bugged = result.bugged;
+    } catch (e) {
+      console.error('Error toggling bugged status:', e);
+      setBugged(!newBugged); // Revert on error
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div class="h-28 p-3 pb-4 border-b border-gray-200 hover:bg-gray-50 mb-1">
+    <div class={`h-32 p-3 pb-8 border-b border-gray-200 hover:bg-gray-50 mb-1 ${bugged() ? 'bg-yellow-100' : ''}`}>
       {/* Header with stage and date */}
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2">
@@ -151,8 +205,23 @@ function GameInfo(props: { replayStub: ReplayStub }) {
             {new Date(props.replayStub.matchId).toLocaleDateString()}
           </div>
         </div>
-        <div class="text-xs text-gray-500">
-          Frames {props.replayStub.frameStart}-{props.replayStub.frameEnd}
+        <div class="flex items-center gap-2">
+          <div class="text-xs text-gray-500">
+            Frames {props.replayStub.frameStart}-{props.replayStub.frameEnd}
+          </div>
+          {/* Bugged toggle button */}
+          <button
+            class={`ml-2 p-1 rounded text-lg ${bugged() ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'} ${loading() ? 'opacity-50' : ''}`}
+            title={bugged() ? 'Mark as not bugged' : 'Mark as bugged'}
+            onClick={(e) => {
+              console.log('Button clicked!');
+              e.stopPropagation(); // Prevent event bubbling
+              toggleBugged();
+            }}
+            disabled={loading()}
+          >
+            {bugged() ? '🐞' : '🪲'}
+          </button>
         </div>
       </div>
       

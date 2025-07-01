@@ -2,6 +2,7 @@ import { createStore } from "solid-js/store";
 import { createEffect, createSignal, on } from "solid-js";
 import { ReplayData, Frame } from "~/common/types";
 import { stageNameByExternalId, ExternalStageName } from "~/common/ids";
+import { LAMBDA_URLS } from "~/config";
 
 export type Category = 'Ledge Dashes' | 'Shine Grabs';
 
@@ -10,7 +11,7 @@ export type Filter =
   | { type: "codeOrName"; label: string };
 
 async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
-    const res = await fetch("https://xpzvwi2rsi.execute-api.us-east-2.amazonaws.com/dev/replay-stub-lambda", {
+    const res = await fetch(LAMBDA_URLS.REPLAY_STUBS_LAMBDA, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category }),
@@ -44,6 +45,7 @@ export interface ReplayStub {
         externalCharacterId: number;
         teamId: number;
     }[];
+    bugged?: boolean;
 }
 
 interface StubStore {
@@ -149,7 +151,7 @@ async function initCategoryStore(category: Category) {
             }
 
             console.log('Fetching replay data for:', cacheKey);
-            const result = await fetch('https://48il4rqxli.execute-api.us-east-2.amazonaws.com/dev/replay-data-lambda', {
+            const result = await fetch(LAMBDA_URLS.REPLAY_DATA_LAMBDA, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(stub),
