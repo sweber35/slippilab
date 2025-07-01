@@ -30,30 +30,35 @@ export function Controls() {
     window.removeEventListener("keyup", onKeyUp);
   });
 
-  function onKeyDown({ key }: KeyboardEvent): void {
-    switch (key) {
+  function onKeyDown(event: KeyboardEvent): void {
+    switch (event.key) {
       case "k":
       case "K":
       case " ":
+        event.preventDefault(); // Prevent default browser scrolling
         togglePause();
         break;
       case "ArrowRight":
       case "l":
       case "L":
+        event.preventDefault(); // Prevent default browser scrolling
         adjust(120);
         break;
       case "ArrowLeft":
       case "j":
       case "J":
+        event.preventDefault(); // Prevent default browser scrolling
         adjust(-120);
         break;
       case ".":
       case ">":
+        event.preventDefault(); // Prevent default browser scrolling
         pause();
         adjust(1);
         break;
       case ",":
       case "<":
+        event.preventDefault(); // Prevent default browser scrolling
         pause();
         adjust(-1);
         break;
@@ -67,12 +72,14 @@ export function Controls() {
       case "7":
       case "8":
       case "9":
-        jumpPercent(Number(key) * 0.1); // convert 3 => 30%
+        jumpPercent(Number(event.key) * 0.1); // convert 3 => 30%
         break;
       case "ArrowUp":
+        event.preventDefault(); // Prevent default browser scrolling
         speedSlow();
         break;
       case "ArrowDown":
+        event.preventDefault(); // Prevent default browser scrolling
         speedFast();
         break;
       case "-":
