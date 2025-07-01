@@ -57,6 +57,8 @@ export function Replays(props: { selectionStore: SelectionStore }) {
         });
     });
     
+    const [loadingStubKey, setLoadingStubKey] = createSignal<string | null>(null);
+
     return (
         <>
           <div class="flex max-h-96 w-full flex-col items-center gap-2 overflow-y-auto sm:h-full md:max-h-screen">
@@ -109,10 +111,21 @@ export function Replays(props: { selectionStore: SelectionStore }) {
             >
               <Picker
                 items={sortedFilteredStubs()}
-                render={(stub) => <GameInfo replayStub={stub} />}
-                onClick={(fileAndSettings) =>
-                  props.selectionStore.select(fileAndSettings)
-                }
+                render={(stub) => (
+                  <GameInfo
+                    replayStub={stub}
+                    loading={
+                      loadingStubKey() === `${stub.matchId}-${stub.frameStart}-${stub.frameEnd}`
+                    }
+                  />
+                )}
+                onClick={async (fileAndSettings, idx) => {
+                  const stub = sortedFilteredStubs()[idx];
+                  const key = `${stub.matchId}-${stub.frameStart}-${stub.frameEnd}`;
+                  setLoadingStubKey(key);
+                  await props.selectionStore.select(fileAndSettings);
+                  setLoadingStubKey(null);
+                }}
                 selected={(stub) =>
                   props.selectionStore.data?.selectedFileAndStub?.[1] === stub
                 }
@@ -124,7 +137,7 @@ export function Replays(props: { selectionStore: SelectionStore }) {
     );
 }
 
-function GameInfo(props: { replayStub: ReplayStub }) {
+function GameInfo(props: { replayStub: ReplayStub, loading?: boolean }) {
   const [bugged, setBugged] = createSignal(props.replayStub.bugged ?? false);
   const [loading, setLoading] = createSignal(false);
 
@@ -214,7 +227,6 @@ function GameInfo(props: { replayStub: ReplayStub }) {
             class={`ml-2 p-1 rounded text-lg ${bugged() ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'} ${loading() ? 'opacity-50' : ''}`}
             title={bugged() ? 'Mark as not bugged' : 'Mark as bugged'}
             onClick={(e) => {
-              console.log('Button clicked!');
               e.stopPropagation(); // Prevent event bubbling
               toggleBugged();
             }}
@@ -222,6 +234,10 @@ function GameInfo(props: { replayStub: ReplayStub }) {
           >
             {bugged() ? '🐞' : '🪲'}
           </button>
+          {/* Loading spinner for replay fetch */}
+          <Show when={props.loading}>
+            <span class="ml-2 animate-spin inline-block w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full"></span>
+          </Show>
         </div>
       </div>
       

@@ -221,6 +221,7 @@ createEffect(() => {
         "renderDatas",
         replayState.replayData.frames[replayState.frame].players
             .filter((playerUpdate) => playerUpdate)
+            .sort((a, b) => a.playerIndex - b.playerIndex)
             .flatMap((playerUpdate) => {
                 const animations = replayState.animations[playerUpdate.playerIndex];
                 if (animations === undefined) return [];
