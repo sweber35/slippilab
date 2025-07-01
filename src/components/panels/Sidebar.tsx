@@ -19,7 +19,7 @@ export function Sidebar() {
                     console.log('Show children render - store:', store);
                     return (
                         <>
-                            <div class="hidden h-full w-96 overflow-y-auto py-4 lg:block">
+                            <div class="hidden h-full w-96 overflow-y-auto py-4 pl-4 lg:block">
                                 <Replays selectionStore={store} />
                             </div>
                             <div class="flex flex-col gap-8 px-4 sm:flex-row sm:gap-2 lg:hidden">
