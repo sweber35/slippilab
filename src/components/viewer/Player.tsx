@@ -2,28 +2,28 @@ import { createMemo, For, Show } from "solid-js";
 import { characterNameByExternalId } from "~/common/ids";
 import { replayStore } from "~/state/awsStore";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
-import { RenderData } from "~/state/replayStore";
+import { RenderData } from "~/state/awsStore";
 
 export function Players() {
-return (
-    <>
-    <For each={replayStore.renderDatas}>
-        {(renderData) => (
+    return (
         <>
-            <path
-            transform={renderData.transforms.join(" ")}
-            d={renderData.path}
-            fill={renderData.innerColor}
-            stroke-width={2}
-            stroke={renderData.outerColor}
-            />
-            <Shield renderData={renderData} />
-            <Shine renderData={renderData} />
+        <For each={replayStore.renderDatas}>
+            {(renderData) => (
+            <>
+                <path
+                transform={renderData.transforms.join(" ")}
+                d={renderData.path}
+                fill={renderData.innerColor}
+                stroke-width={2}
+                stroke={renderData.outerColor}
+                />
+                <Shield renderData={renderData} />
+                <Shine renderData={renderData} />
+            </>
+            )}
+        </For>
         </>
-        )}
-    </For>
-    </>
-);
+    );
 }
 function Shield(props: { renderData: RenderData }) {
 

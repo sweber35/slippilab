@@ -1,5 +1,5 @@
 import { ReplayData } from "~/common/types";
-import { ReplayStub } from "~/state/selectionStore";
+import { ReplayStub } from "~/state/awsSelectionStore";
 
 interface ReplayRow {
   id: number;
