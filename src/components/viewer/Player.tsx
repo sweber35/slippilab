@@ -2,7 +2,19 @@ import { createMemo, For, Show } from "solid-js";
 import { characterNameByExternalId } from "~/common/ids";
 import { replayStore } from "~/state/awsStore";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
-import { RenderData } from "~/state/awsStore";
+
+// Define RenderData interface locally since it's not exported
+interface RenderData {
+    playerState: any;
+    playerInputs: any;
+    playerSettings: any;
+    path?: string;
+    innerColor: string;
+    outerColor: string;
+    transforms: string[];
+    animationName: string;
+    characterData: any;
+}
 
 export function Players() {
     return (
@@ -58,6 +70,34 @@ function Shield(props: { renderData: RenderData }) {
     const shieldSizeMultiplier = createMemo(
         () => ((shieldHealth() * triggerStrengthMultiplier()) / 60) * 0.85 + 0.15
     );
+    
+    // Use the same facing direction logic as the character rendering
+    const facingDirection = createMemo(() => {
+        const actionName = props.renderData.animationName;
+        // Check if this action follows current facing direction (same logic as in computeRenderData)
+        const actionFollowsFacingDirection = 
+            actionName.includes("Jump") ||
+            ["SpecialHi", "SpecialAirHi"].includes(actionName);
+        
+        if (actionFollowsFacingDirection) {
+            return props.renderData.playerState.facingDirection;
+        } else {
+            // Use start-of-action facing direction for other actions
+            if (!replayStore.replayData) {
+                return props.renderData.playerState.facingDirection;
+            }
+            const startOfActionFrame = getStartOfAction(props.renderData.playerState, replayStore.replayData);
+            const startOfActionPlayerUpdate = getPlayerOnFrame(
+                props.renderData.playerSettings.playerIndex,
+                startOfActionFrame,
+                replayStore.replayData
+            );
+            return startOfActionPlayerUpdate && startOfActionPlayerUpdate.state
+                ? startOfActionPlayerUpdate.state.facingDirection
+                : props.renderData.playerState.facingDirection;
+        }
+    });
+    
     return (
         <>
             <Show
@@ -70,7 +110,7 @@ function Shield(props: { renderData: RenderData }) {
                     cx={
                         props.renderData.playerState.xPosition +
                         props.renderData.characterData.shieldOffset[0] *
-                        props.renderData.playerState.facingDirection
+                        facingDirection()
                     }
                     cy={
                         props.renderData.playerState.yPosition +

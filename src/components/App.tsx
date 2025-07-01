@@ -6,8 +6,8 @@ import { filterFiles } from "~/common/util";
 import { ToastGroup } from "~/components/common/toaster";
 import { Navigation } from "~/components/panels/Navigation";
 import { Sidebar } from "~/components/panels/Sidebar";
-import { TopBar } from "~/components/panels/TopBar";
 import { Viewer } from "~/components/viewer/Viewer";
+import { DebugPanel } from "~/components/panels/DebugPanel";
 import { load } from "~/state/fileStore";
 import { replayStore } from "~/state/awsStore";
 import { fetchAnimations } from "~/viewer/animationCache";
@@ -54,6 +54,7 @@ export function App() {
         fallback={
           <div class="flex h-screen flex-col justify-between overflow-y-auto">
             <Viewer />
+            <DebugPanel />
           </div>
         }
       >
@@ -65,6 +66,7 @@ export function App() {
           <Sidebar />
         <div class="flex max-h-screen flex-grow flex-col gap-2 pt-2 pr-4 pl-4 lg:pl-0">
             <Viewer />
+            <DebugPanel />
         </div>
         </div>
       </Show>
