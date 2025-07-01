@@ -130,7 +130,7 @@ const categoryStores: Record<string, SelectionStore> = {};
 // Cache for replay data to prevent unnecessary refetching
 const replayDataCache = new Map<string, ReplayData>();
 
-async function initCategoryStore(category: Category) {
+export async function initCategoryStore(category: Category) {
     console.log('Loading stubs for category:', category);
     const stubs = await loadStubsForCategory(category);
     console.log('Loaded stubs:', stubs.length, 'for category:', category);

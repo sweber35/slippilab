@@ -2,9 +2,10 @@ import { createOptions, Select } from "@thisbeyond/solid-select";
 import { createMemo, createSignal, Show } from "solid-js";
 import { Picker } from "~/components/common/Picker";
 import { StageBadge, PlayerBadge } from "~/components/common/Badge";
-import { ReplayStub, SelectionStore, currentCategory, setCurrentCategory } from "~/state/awsSelectionStore";
+import { ReplayStub, SelectionStore, currentCategory, setCurrentCategory, initCategoryStore } from "~/state/awsSelectionStore";
 import { characterNameByExternalId } from "~/common/ids";
 import { LAMBDA_URLS } from "~/config";
+import { createEffect } from "solid-js";
 
 const categoryOptions = [
     { value: "Ledge Dashes", label: "Ledge Dashes" },
@@ -58,6 +59,33 @@ export function Replays(props: { selectionStore: SelectionStore }) {
     });
     
     const [loadingStubKey, setLoadingStubKey] = createSignal<string | null>(null);
+    const [loadingCategory, setLoadingCategory] = createSignal(false);
+
+    // Handle category change with loading state
+    async function handleCategoryChange(selected: { value: string; label: string } | null) {
+        if (selected && typeof selected === 'object' && 'value' in selected) {
+            setLoadingCategory(true);
+            try {
+                await initCategoryStore(selected.value as import("~/state/awsSelectionStore").Category);
+                setCurrentCategory(selected.value as import("~/state/awsSelectionStore").Category);
+            } finally {
+                setLoadingCategory(false);
+            }
+        } else {
+            console.log('DEBUG: No valid selection');
+        }
+    }
+
+    // Refresh button handler
+    async function handleRefreshCategory() {
+        setLoadingCategory(true);
+        try {
+            await initCategoryStore(currentCategory());
+            // setCurrentCategory(currentCategory()); // Not needed, just refresh
+        } finally {
+            setLoadingCategory(false);
+        }
+    }
 
     return (
         <>
@@ -65,27 +93,42 @@ export function Replays(props: { selectionStore: SelectionStore }) {
             {/* Category Selection */}
             <div class="w-full">
               <label class="block text-sm font-medium text-gray-700 mb-1">Tech Skill Category</label>
-              <Show when={currentCategory()} keyed>
-                {(category) => {
-                  const currentOption = categoryOptions.find(opt => opt.value === category) || categoryOptions[0];
-                  return (
-                    <Select
-                      class="w-full rounded border border-slate-600 bg-white"
-                      placeholder="Select tech skill category"
-                      {...categoryFilterProps}
-                      initialValue={currentOption}
-                      onChange={(selected) => {
-                        if (selected && typeof selected === 'object' && 'value' in selected) {
-                          console.log('Changing category to:', selected.value);
-                          setCurrentCategory(selected.value);
-                        } else {
-                          console.log('DEBUG: No valid selection');
-                        }
-                      }}
-                    />
-                  );
-                }}
-              </Show>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 relative">
+                  <Show when={currentCategory()} keyed>
+                    {(category) => {
+                      const currentOption = categoryOptions.find(opt => opt.value === category) || categoryOptions[0];
+                      return (
+                        <>
+                          <Select
+                            class="w-full rounded border border-slate-600 bg-white"
+                            placeholder="Select tech skill category"
+                            {...categoryFilterProps}
+                            initialValue={currentOption}
+                            disabled={loadingCategory()}
+                            onChange={handleCategoryChange}
+                          />
+                        </>
+                      );
+                    }}
+                  </Show>
+                </div>
+                <button
+                  class="ml-2 rounded border border-slate-400 bg-white hover:bg-slate-100 disabled:opacity-50 flex items-center justify-center"
+                  title="Refresh category"
+                  onClick={handleRefreshCategory}
+                  disabled={loadingCategory()}
+                  style={{ height: '38px', width: '38px', padding: 0 }}
+                >
+                  {loadingCategory() ? (
+                    <span class="animate-spin inline-block w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full"></span>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5A9 9 0 1112 21v-3m0 0l-2.25 2.25M12 18v3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Stage/Player Filtering */}
