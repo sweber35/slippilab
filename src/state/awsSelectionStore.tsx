@@ -4,22 +4,48 @@ import { ReplayData, Frame } from "~/common/types";
 import { stageNameByExternalId, ExternalStageName } from "~/common/ids";
 import { LAMBDA_URLS } from "~/config";
 
+export type ActionState = 'CLIFF_WAIT' | 'FALL' | 'JUMP' |
+                          'AIR_DODGE' | 'IDLE' | 'SHINE_START' |
+                          'SHINE_WAIT' | 'JUMP_SQUAT' | 'GRAB';
+
 export type Category = 'Ledge Dashes' | 'Shine Grabs';
+
+// Mapping from categories to action state sequences
+export const categoryToActionSequence: Record<Category, {action: ActionState, minFrames?: number, maxFrames?: number}[]> = {
+    'Ledge Dashes': [
+        { action: 'CLIFF_WAIT', minFrames: 7 },
+        { action: 'FALL', minFrames: 1, maxFrames: 3 },
+        { action: 'JUMP', minFrames: 1, maxFrames: 5 },
+        { action: 'AIR_DODGE' }
+    ],
+
+    'Shine Grabs': [
+        { action: 'SHINE_START', minFrames: 1, maxFrames: 5 },
+        { action: 'SHINE_WAIT', minFrames: 1, maxFrames: 5 },
+        { action: 'JUMP_SQUAT', minFrames: 1, maxFrames: 8 },
+        { action: 'GRAB'}
+    ],
+};
 
 export type Filter = 
   | { type: "stage"; label: ExternalStageName }
   | { type: "codeOrName"; label: string };
 
-async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
+export async function loadStubsForActionSequence(actionSequence: {action: ActionState, minFrames?: number, maxFrames?: number}[]): Promise<ReplayStub[]> {
     const res = await fetch(LAMBDA_URLS.REPLAY_STUBS_LAMBDA, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category }),
+        body: JSON.stringify({ actions: actionSequence }),
     });
 
     const payload = await res.json();
 
     return payload;
+}
+
+export async function loadStubsForCategory(category: Category): Promise<ReplayStub[]> {
+    const actionSequence = categoryToActionSequence[category];
+    return loadStubsForActionSequence(actionSequence);
 }
 
 export interface SelectionState {
@@ -188,14 +214,14 @@ export async function initCategoryStore(category: Category) {
     console.log('Category store created for:', category);
 }
 
-export const [currentCategory, setCurrentCategory] = createSignal<Category>("Ledge Dashes");
+export const [currentCategory, setCurrentCategory] = createSignal<Category>("Shine Grabs");
 export const [currentSelectionStore, setCurrentSelectionStore] = createSignal<SelectionStore | undefined>(undefined);
 
 // Initialize the first category store immediately
 (async () => {
     console.log('Initializing first category store');
-    await initCategoryStore("Ledge Dashes");
-    setCurrentSelectionStore(categoryStores["Ledge Dashes"]);
+    await initCategoryStore("Shine Grabs");
+    setCurrentSelectionStore(categoryStores["Shine Grabs"]);
 })();
 
 createEffect(async () => {

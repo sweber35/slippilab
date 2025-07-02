@@ -7,9 +7,15 @@ import { characterNameByExternalId } from "~/common/ids";
 import { LAMBDA_URLS } from "~/config";
 import { createEffect } from "solid-js";
 
+interface PlayerInfo {
+  tag: string;
+  characterId: number;
+  playerIndex: number;
+}
+
 const categoryOptions = [
-    { value: "Ledge Dashes", label: "Ledge Dashes" },
     { value: "Shine Grabs", label: "Shine Grabs" },
+    { value: "Ledge Dashes", label: "Ledge Dashes" },
 ];
 
 const stageOptions = [
@@ -187,20 +193,14 @@ function GameInfo(props: { replayStub: ReplayStub, loading?: boolean }) {
   // Parse the players string to extract player tags and character IDs
   const parsePlayers = () => {
     try {
-      // Remove the outer brackets and split by player entries
-      const playersStr = props.replayStub.players.slice(1, -1); // Remove [ and ]
-      const playerEntries = playersStr.split('}, {');
+      // Parse the players JSON string into an array of player objects
+      const playersArray = JSON.parse(props.replayStub.players) as PlayerInfo[];
       
-      return playerEntries.map((entry, index) => {
-        // Clean up the entry and extract tag and character ID
-        const cleanEntry = entry.replace('{', '').replace('}', '');
-        const [tag, characterId] = cleanEntry.split(', ').map(s => s.trim());
-        return { 
-          tag, 
-          characterId: parseInt(characterId),
-          playerIndex: index + 1 // Player indices are 1-based for badges
-        };
-      });
+      return playersArray.map((player) => ({
+        tag: player.tag,
+        characterId: player.characterId,
+        playerIndex: player.playerIndex + 1 // Convert to 1-based for badges
+      }));
     } catch (error) {
       console.error('Error parsing players:', error);
       return [];

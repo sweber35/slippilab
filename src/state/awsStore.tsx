@@ -16,6 +16,7 @@ import { Character } from "~/viewer/characters/character";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
 import { actionMapByInternalId } from "~/viewer/characters";
 import colors from "tailwindcss/colors";
+import {Highlight} from "~/search/search";
 
 interface RenderData {
     playerState: PlayerState;
